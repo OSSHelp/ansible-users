@@ -1,0 +1,6 @@
+---
+- name: manage users
+  include_tasks: user_manage.yml
+  vars:
+    managed_user: "{{ item }}"
+  loop: "{{ users | default('[]') }}"
