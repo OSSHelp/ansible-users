@@ -1,41 +1,45 @@
 ---
-- name: manage user {{ managed_user.name }}
-  user:
-    name: "{{ managed_user.name }}"
-    comment: "{{ managed_user.comment | default('') }}"
-    create_home: "{{ managed_user.create_home | default('yes') }}"
-    groups: "{{ managed_user.groups | default('[]') }}"
-    home: "{{ managed_user.home | default('/home/' ~ managed_user.name) }}"
-    password: "{{ managed_user.password | default('') }}"
-    remove: "{{ managed_user.remove | default('no') }}"
-    shell: "{{ managed_user.shell | default('/bin/bash') }}"
-    state: "{{ managed_user.state | default('present') }}"
-    system: "{{ managed_user.system | default('no') }}"
-  when: managed_user.user_uid is not defined and managed_user.user_gid is not defined
 
-- name: manage group {{ managed_user.name }} (with custom gid)
-  group:
-    name: "{{ managed_user.name }}"
-    gid: "{{ managed_user.user_gid | default('') }}"
-    system: "{{ managed_user.system | default('no') }}"
-    state: "{{ managed_user.state | default('present') }}"
-  when: managed_user.user_uid is defined and managed_user.user_gid is defined
+- name: manage users and groups
+  block:
+    - name: manage user {{ managed_user.name }}
+      user:
+        name: "{{ managed_user.name }}"
+        comment: "{{ managed_user.comment | default('') }}"
+        create_home: "{{ managed_user.create_home | default('yes') }}"
+        groups: "{{ managed_user.groups | default('[]') }}"
+        home: "{{ managed_user.home | default('/home/' ~ managed_user.name) }}"
+        password: "{{ managed_user.password | default('') }}"
+        remove: "{{ managed_user.remove | default('no') }}"
+        shell: "{{ managed_user.shell | default('/bin/bash') }}"
+        state: "{{ managed_user.state | default('present') }}"
+        system: "{{ managed_user.system | default('no') }}"
+      when: managed_user.user_uid is not defined and managed_user.user_gid is not defined
 
-- name: manage user {{ managed_user.name }} (with custom uid)
-  user:
-    name: "{{ managed_user.name }}"
-    group: "{{ managed_user.name }}"
-    comment: "{{ managed_user.comment | default('') }}"
-    create_home: "{{ managed_user.create_home | default('yes') }}"
-    groups: "{{ managed_user.groups | default('[]') }}"
-    home: "{{ managed_user.home | default('/home/' ~ managed_user.name) }}"
-    password: "{{ managed_user.password | default('') }}"
-    remove: "{{ managed_user.remove | default('no') }}"
-    shell: "{{ managed_user.shell | default('/bin/bash') }}"
-    state: "{{ managed_user.state | default('present') }}"
-    system: "{{ managed_user.system | default('no') }}"
-    uid: "{{ managed_user.user_uid | default('') }}"
-  when: managed_user.user_uid is defined and managed_user.user_gid is defined
+    - name: manage group {{ managed_user.name }} (with custom gid)
+      group:
+        name: "{{ managed_user.name }}"
+        gid: "{{ managed_user.user_gid | default('') }}"
+        system: "{{ managed_user.system | default('no') }}"
+        state: "{{ managed_user.state | default('present') }}"
+      when: managed_user.user_uid is defined and managed_user.user_gid is defined
+
+    - name: manage user {{ managed_user.name }} (with custom uid)
+      user:
+        name: "{{ managed_user.name }}"
+        group: "{{ managed_user.name }}"
+        comment: "{{ managed_user.comment | default('') }}"
+        create_home: "{{ managed_user.create_home | default('yes') }}"
+        groups: "{{ managed_user.groups | default('[]') }}"
+        home: "{{ managed_user.home | default('/home/' ~ managed_user.name) }}"
+        password: "{{ managed_user.password | default('') }}"
+        remove: "{{ managed_user.remove | default('no') }}"
+        shell: "{{ managed_user.shell | default('/bin/bash') }}"
+        state: "{{ managed_user.state | default('present') }}"
+        system: "{{ managed_user.system | default('no') }}"
+        uid: "{{ managed_user.user_uid | default('') }}"
+      when: managed_user.user_uid is defined and managed_user.user_gid is defined
+  when: not ansible_check_mode
 
 - name: manage authorized_keys for user {{ managed_user.name }}
   authorized_key:
