@@ -47,6 +47,8 @@
       file:
         path: "/home/{{ managed_user.name }}/.ssh"
         state: directory
+        owner: "{{ managed_user.name }}"
+        group: "{{ managed_user.name }}"
         mode: '0700'
     - name: manage authorized_keys for user {{ managed_user.name }}
       template:
