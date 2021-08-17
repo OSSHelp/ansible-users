@@ -39,22 +39,11 @@
         system: "{{ managed_user.system | default('no') }}"
         uid: "{{ managed_user.user_uid | default('') }}"
       when: managed_user.user_uid is defined and managed_user.user_gid is defined
-  when: not ansible_check_mode
+  when: not ansible_check_mode and managed_user.name != 'root'
 
-- name: authorized keys management
-  block:
-    - name: create .ssh directory for user {{ managed_user.name }}
-      file:
-        path: "/home/{{ managed_user.name }}/.ssh"
-        state: directory
-        owner: "{{ managed_user.name }}"
-        group: "{{ managed_user.name }}"
-        mode: '0700'
-    - name: manage authorized_keys for user {{ managed_user.name }}
-      template:
-        src: authorized_keys.j2
-        dest: "/home/{{ managed_user.name }}/.ssh/authorized_keys"
-        owner: "{{ managed_user.name }}"
-        group: "{{ managed_user.name }}"
-        mode: '0600'
+- name: manage authorized_keys for user {{ managed_user.name }}
+  authorized_key:
+    user: "{{ managed_user.name }}"
+    key: "{{ managed_user.ssh_keys | join('\n') }}"
+    exclusive: yes
   when: managed_user.ssh_keys is defined and managed_user.state|default('present') != 'absent'

@@ -72,12 +72,11 @@ Put a password hash into secrets (e.g. ansible vault).
 
 - [Ansible user module](https://docs.ansible.com/ansible/latest/modules/user_module.html)
 - [Ansible encrypted password generation](https://docs.ansible.com/ansible/faq.html#how-do-i-generate-encrypted-passwords-for-the-user-module)
-- [Ansible authorized_key module](https://docs.ansible.com/ansible/latest/modules/authorized_key_module.html)
+- [Ansible authorized_key module](https://docs.ansible.com/ansible/2.9/modules/authorized_key_module.html)
 
 ## TODO
 
 - rename variable rsa_key -> rsa_key_pub (or something with pub)
-- multiple authorized_key pub keys
 - homedir mode. default 755
 
 ## License
