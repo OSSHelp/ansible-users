@@ -22,6 +22,7 @@
         gid: "{{ managed_user.user_gid | default('') }}"
         system: "{{ managed_user.system | default('no') }}"
         state: "{{ managed_user.state | default('present') }}"
+        non_unique: "{{ managed_user.non_unique | default('no') }}"
       when: managed_user.user_uid is defined and managed_user.user_gid is defined
 
     - name: manage user {{ managed_user.name }} (with custom uid)
@@ -38,12 +39,60 @@
         state: "{{ managed_user.state | default('present') }}"
         system: "{{ managed_user.system | default('no') }}"
         uid: "{{ managed_user.user_uid | default('') }}"
-      when: managed_user.user_uid is defined and managed_user.user_gid is defined
+        non_unique: "{{ managed_user.non_unique | default('no') }}"
+      when: managed_user.user_uid is defined
+            and managed_user.user_gid is defined
+            and managed_user.password_lock is not defined
+
+    - name: manage password locks for {{ managed_user.name }}
+      user:
+        name: "{{ managed_user.name }}"
+        group: "{{ managed_user.name }}"
+        comment: "{{ managed_user.comment | default('') }}"
+        create_home: "{{ managed_user.create_home | default('yes') }}"
+        groups: "{{ managed_user.groups | default('[]') }}"
+        home: "{{ managed_user.home | default('/home/' ~ managed_user.name) }}"
+        remove: "{{ managed_user.remove | default('no') }}"
+        shell: "{{ managed_user.shell | default('/bin/bash') }}"
+        state: "{{ managed_user.state | default('present') }}"
+        system: "{{ managed_user.system | default('no') }}"
+        uid: "{{ managed_user.user_uid | default('') }}"
+        non_unique: "{{ managed_user.non_unique | default('no') }}"
+        password_lock: "{{ managed_user.password_lock | default('no') }}"
+      when: managed_user.password_lock is defined
   when: not ansible_check_mode and managed_user.name != 'root'
 
-- name: manage authorized_keys for user {{ managed_user.name }}
+- name: сheck the need for changes for user {{ managed_user.name }}
   authorized_key:
     user: "{{ managed_user.name }}"
     key: "{{ managed_user.ssh_keys | join('\n') }}"
     exclusive: yes
+  check_mode: yes
+  register: user_keys
   when: managed_user.ssh_keys is defined and managed_user.state|default('present') != 'absent'
+
+- name: manage users authorized_keys
+  block:
+    - name: get file stats
+      stat:
+        path: /root/.ssh/authorized_keys
+      register: authorized_keys_stat
+      when: managed_user.name == 'root' and ansible_virtualization_type != 'lxc'
+    - name: chattr -i authorized_keys
+      file:
+        path: /root/.ssh/authorized_keys
+        attributes: -i
+      when: managed_user.name == 'root' and ansible_virtualization_type != 'lxc' and '"immutable" in authorized_keys_stat.stat.attributes'
+      register: immutable_attribute
+    - name: manage authorized_keys for user {{ managed_user.name }}
+      authorized_key:
+        user: "{{ managed_user.name }}"
+        key: "{{ managed_user.ssh_keys | join('\n') }}"
+        exclusive: yes
+      when: managed_user.ssh_keys is defined and managed_user.state|default('present') != 'absent'
+    - name: chattr +i authorized_keys
+      file:
+        path: /root/.ssh/authorized_keys
+        attributes: +i
+      when: immutable_attribute.changed
+  when: user_keys.changed

@@ -55,8 +55,9 @@ Here are not mandatory parameters.
 | `users.[].system` | System user or not. Default `no` |
 | `users.[].uid` | User uid. Works with user.gid only |
 | `users.[].gid` | Main user group gid. Works with user.uid only |
-| `users.[].rsa_key` | Public part of user rsa key |
-| `users.[].ssh_keys` | Public part of user ssh keys |
+| `users.[].ssh_keys` | Public parts of ssh keys for `.ssh/authorized_keys`|
+| `users.[].non_unique` | If set to `true` allows creation with the same UID as the already existing user. |
+| `users.[].password_lock` | If set to `true` locks password of created user. |
 
 ## FAQ
 

@@ -1,4 +1,9 @@
 ---
+- name: gather required facts
+  setup:
+    gather_subset: [virtual]
+  when: ansible_virtualization_type is not defined
+
 - name: manage users
   include_tasks: user_manage.yml
   vars:
