@@ -62,13 +62,19 @@
       when: managed_user.password_lock is defined
   when: not ansible_check_mode and managed_user.name != 'root'
 
+
 - name: сheck the need for changes for user {{ managed_user.name }}
-  authorized_key:
-    user: "{{ managed_user.name }}"
-    key: "{{ managed_user.ssh_keys | join('\n') }}"
-    exclusive: yes
-  check_mode: yes
-  register: user_keys
+  block:
+    - name: fail if received "ssh_keys" for user {{ managed_user.name }} is not a list
+      assert:
+        that: managed_user.ssh_keys | type_debug == "list"
+    - name: сheck the need for changes for user {{ managed_user.name }}
+      authorized_key:
+        user: "{{ managed_user.name }}"
+        key: "{{ managed_user.ssh_keys | join('\n') }}"
+        exclusive: yes
+      check_mode: yes
+      register: user_keys
   when: managed_user.ssh_keys is defined and managed_user.state|default('present') != 'absent'
 
 - name: manage users authorized_keys
